@@ -8,7 +8,7 @@ __version__ = "0.2"
 from argparse import ArgumentParser, RawTextHelpFormatter
 import time
 from modules import rebuild, crossmatch
-from moduled import functions as f
+from modules import functions as f
 
 def main():
     

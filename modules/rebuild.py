@@ -5,11 +5,10 @@ __author__ = "L. Canepa"
 __version__ = "0.2"
 
 import glob
-import sys
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from astropy.io import ascii
-import functions as f
+from . import functions as f
 
 def rebuild():
 	
@@ -24,14 +23,16 @@ def rebuild():
 	
 	# Add the base catalogue to CHAD
 	print("Adding base catalogue to CHAD...")
-	add_master("racs")
+	add_master(cur, "racs")
+
+	
 	
 	print("Done rebuild")
 	
 	return
 	
 # Add the master catalogue (RACS) to the database
-def add_master(name = "racs"):
+def add_master(cursor, name = "racs"):
 	
 	# Get both catalogue types into the database
 	for cattype in ["component", "island"]:
@@ -46,9 +47,12 @@ def add_master(name = "racs"):
 			# Generate the header
 			if i == 0:
 				header = f.generate_header(d, name+"_"+cattype)
-				print(header)
+				#print(header)
 				
 			# Create the table
-			cur.execute(header)
+			cursor.execute(header)
+
+			# Insert rows into the table
+			print("Inserting rows...")
 	
 	return

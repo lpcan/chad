@@ -2,6 +2,7 @@
 # Helper functions
 # L. Canepa, adapted from V.A. Moss
 
+import sys
 import requests
 
 # Download information from Google spreadsheet
@@ -14,14 +15,19 @@ def download_csv(sheet_id):
 	return
 	
 # Generate SQL table header from csv file
-def generate_header(file, table_name):
+def generate_header(file, table_name, prim_key = "id"):
+
+	# Check that primary key exists
+	if prim_key not in file.keys():
+		print("ERROR: Please specify an existing column name for primary key")
+		sys.exit()
+
 	# Determine key type
 	keytypes = []
-	dbkeys = d.keys()
+	dbkeys = file.keys()
 	for k in range(0, len(dbkeys)):
 		key = dbkeys[k]
-		keytype = str(d[key].dtype)
-		print(key, keytype)
+		keytype = str(file[key].dtype)
 		
 		# Determine type for database
 		if "int" in keytype:
@@ -41,10 +47,13 @@ def generate_header(file, table_name):
 			dbkeys[k] = '\"'+key+'\"'
 			
 	# Generate create table command
-	header = "CREATE TABLE %s(\nid TEXT PRIMARY KEY,\ntype TEXT,\n" % table_name
+	header = "CREATE TABLE %s(\n" % table_name
 	
 	for i in range(0, len(dbkeys)):
-		header = header + "%s %s,\n" % (dbkeys[i], keytypes[i])
+		if dbkeys[i] == prim_key:
+			header = header + "%s %s PRIMARY KEY,\n" % (dbkeys[i], keytypes[i])
+		else:
+			header = header + "%s %s,\n" % (dbkeys[i], keytypes[i])
 	header = header[:-2]+"\n)"
 	
 	return header
