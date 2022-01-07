@@ -3,12 +3,12 @@
 # L. Canepa, adapted from V.A. Moss
 
 __author__= "L. Canepa"
-__version__ = 0.2
+__version__ = "0.2"
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 import time
-#from modules import crossmatch, addsurveys
-from modules.functions import *
+from modules import rebuild, crossmatch
+from moduled import functions as f
 
 def main():
     
@@ -33,15 +33,16 @@ def main():
     
     # Download parameters from sheet
     param_sheet_id = "1-ePYYFph6GHohn5KKZi24rw_vAdcMltg0lRu8FfSaPg"
-    download_csv(param_sheet_id)
+    f.download_csv(param_sheet_id)
     
     # Check arguments
     if args.rebuild == True:
         print("Rebuilding CHAD...")
-        rebuild()
+        rebuild.rebuild()
     	
     if args.crossmatch == True:
         print("Crossmatching surveys...")
+        crossmatch.crossmatch()
 
     if args.addsurveys == True:
     	print("Importing surveys into CHAD...")
