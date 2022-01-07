@@ -7,7 +7,7 @@ __version__ = 0.2
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 import time
-from modules import crossmatch, addsurveys
+#from modules import crossmatch, addsurveys
 from modules.functions import *
 
 def main():
@@ -37,12 +37,12 @@ def main():
     
     # Check arguments
     if args.rebuild == True:
-    	print("Rebuilding CHAD...")
-    	rebuild()
+        print("Rebuilding CHAD...")
+        rebuild()
     	
-   	if args.crossmatch == True:
-   		print("Crossmatching surveys...")
-    	
+    if args.crossmatch == True:
+        print("Crossmatching surveys...")
+
     if args.addsurveys == True:
     	print("Importing surveys into CHAD...")
 

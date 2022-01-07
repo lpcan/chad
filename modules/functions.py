@@ -5,7 +5,6 @@
 import requests
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from termcolor import colored
 
 # Download information from Google spreadsheet
 def download_csv(sheet_id):
@@ -27,6 +26,6 @@ def rebuild():
 	cur.execute("DROP DATABASE IF EXISTS chad;")
 	conn.commit()
 	cur.execute("CREATE DATABASE chad;")
-	print(colored("Done rebuild", "green"))
+	print("Done rebuild")
 	
 	return
