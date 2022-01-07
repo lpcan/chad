@@ -25,8 +25,6 @@ def rebuild():
 	print("Adding base catalogue to CHAD...")
 	add_master(cur, "racs")
 
-	
-	
 	print("Done rebuild")
 	
 	return
@@ -54,5 +52,10 @@ def add_master(cursor, name = "racs"):
 
 			# Insert rows into the table
 			print("Inserting rows...")
+			for i in range(0, len(d)):
+				print(f"{i}/{len(d)}\r")
+				
+				# Get the values to insert
+				values = "\""
 	
 	return
