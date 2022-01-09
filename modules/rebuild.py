@@ -10,32 +10,36 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from astropy.io import ascii
 from . import functions as f
 
+passwd = "hello" # Update with password for user postgres
+
 def rebuild():
 	
 	# Connect to the host to rebuild database
-	passwd = input("Password for user postgres: ")
 	conn = psycopg2.connect("host=localhost dbname=postgres user=postgres password=%s" % passwd)
 	conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 	cur = conn.cursor()
 	cur.execute("DROP DATABASE IF EXISTS chad;")
 	conn.commit()
 	cur.execute("CREATE DATABASE chad;")
+	conn = psycopg2.connect("host=localhost dbname=chad user=postgres password=hello")
+	cur = conn.cursor()
 	
 	# Add the base catalogue to CHAD
 	print("Adding base catalogue to CHAD...")
 	add_master(cur, "racs")
 
+	conn.commit()		
 	print("Done rebuild")
-	
+
 	return
 	
 # Add the master catalogue (RACS) to the database
-def add_master(cursor, name = "racs"):
+def add_master(cur, name = "racs"):
 	
 	# Get both catalogue types into the database
 	for cattype in ["component", "island"]:
-	
-		cats = glob.glob("input/%s_%s*.csv" % (name, cattype))
+		table = name+"_"+cattype
+		cats = glob.glob("input/%s*.csv" % table)
 		
 		# Loop over the input tables
 		for i, cat in enumerate(cats):
@@ -44,18 +48,24 @@ def add_master(cursor, name = "racs"):
 			
 			# Generate the header
 			if i == 0:
-				header = f.generate_header(d, name+"_"+cattype)
+				header = f.generate_header(d, table)
 				#print(header)
 				
 			# Create the table
-			cursor.execute(header)
+			cur.execute(header)
 
 			# Insert rows into the table
 			print("Inserting rows...")
 			for i in range(0, len(d)):
-				print(f"{i}/{len(d)}\r")
+				print(f"{i}/{len(d)}", end = "\r")
+				if i == len(d) - 1: # leave the last line printed
+					print(f"{len(d)}/{len(d)}")
 				
 				# Get the values to insert
-				values = "\""
-	
+				values = ", ".join(['%s'] * len(d[i]))
+
+				query = "INSERT INTO %s VALUES (" % table
+				
+				cur.execute(query + values + ")", tuple(map(str, d[i])))
+
 	return
