@@ -26,7 +26,7 @@ def rebuild():
 	
 	# Add the base catalogue to CHAD
 	print("Adding base catalogue to CHAD...")
-	add_master(cur, "racs")
+	add_master(cur, name = "racs") # If master table is something different, change name
 
 	conn.commit()		
 	print("Done rebuild")

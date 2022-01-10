@@ -1,23 +1,115 @@
 #!/usr/bin/python
-# Perform crossmatch with RACS and another catalogue, using XMatch
+# Perform crossmatch with master table and another catalogue, using XMatch
 # L. Canepa, adapted from V.A. Moss
 __author__ = "L. Canepa"
 __version__ = "0.2"
 
+import numpy as np
 from astropy import units as u
 from astroquery.xmatch import XMatch
+from astroquery.utils.tap.core import TapPlus
 from astropy.io import ascii
+from scipy.stats import circmean
 import time
-from modules import functions as f
 import glob
+import os
 
-def crossmatch():
+def crossmatch(master, max_confidence):
 	
 	# Get the surveys to crossmatch
-	surveys = ascii.read("input/chadsurveys.csv")
+	surveys = ascii.read("input/chadsurveys.csv", format = "csv")
 	
 	for survey in surveys:
+		if survey["status"] == "blocked":
+			continue
+
+		# Get the master files
+		masterfiles = glob.glob("input/%s_%s*csv" % (master, survey["type"]))
+
+		for file in masterfiles:
+			chunk = file.split('_')[-1].split('.')[0]
+			name = survey["survey"]
+			v_code = survey["vizier_code"]
+			ang_sep = survey["angular_sep"]
+
+			# Check if table is available
+			available = XMatch.is_table_available("vizier:%s" % v_code)
+			if not available:
+				print("Table %s is not available! Continuing..." % v_code)
+				break
+
+			start = time.time() # Time the crossmatch
+			print("Crossmatching %s with file %s" % (name, file))
+			try:
+				matches = XMatch.query(cat1 = open(file), cat2 = "vizier:%s" % v_code, max_distance = ang_sep * u.arcsec, colRA1 = "ra", colDec1 = "dec")
+			except Exception as inst:
+				print("Query failed: %s. Continuing..." % inst)
+				continue
+
+			print("Culling crossmatch results... Max confidence level: %s%%" % str(max_confidence))
+			
+			# Calculate the confidence of each match and remove matches < confidence level
+			confidence = calc_confidence(v_code, matches, file)
+			matches['confidence'] = confidence
+			matches = matches[matches['confidence'] > (max_confidence/100)]
+
+			# Save the crossmatched result to use later
+			print("Writing table...")
+			if not os.path.exists("output"):
+				os.makedirs("output")
+			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name, chunk), overwrite=True)
+			end = time.time()
+			total = end-start
+			print("Total time: %.2f min" % (total/60.))
+			
+	print("Done crossmatching!")
+
+def calc_confidence(target_name, matches, master):
+
+	table = ascii.read(master, format = "csv")
+
+	# Estimate the density of the target survey by getting number of elements in a 1 degree radius around a random point in the patch -- TODO: how to get the "centre" of a patch that is weird and elongated e.g. racs galactic region
+	"""mean_ra = circmean(table['ra'], high = 360)
+	mean_dec = circmean(table['dec'], low = -90, high = 90)"""
+	rand_ra = table['ra'][int(len(table) / 2)]
+	rand_dec = table['dec'][int(len(table) / 2)]
+
+	# Count the number of sources in a 1 degree radius circle for both catalogues
+	data = TapPlus(url="http://tapvizier.u-strasbg.fr/TAPVizieR/tap")
+	job = data.launch_job_async(f"SELECT COUNT(*) FROM \"{target_name}\" WHERE 1=CONTAINS(POINT('ICRS', RAJ2000, DEJ2000), CIRCLE('ICRS', {rand_ra}, {rand_dec}, 1))")
+	r = job.get_results()
+
+	density = r[0][0] / np.pi
+	density = density / (60*60*60*60) # Convert density to arcseconds^2 instead of deg^2
+
+	# Calculate the confidence for each point in the table
+	confidence = []
+	for i, source in enumerate(matches):
+		print(f"{i}/{len(matches)}", end='\r')
+
+		if source["angDist"] > max(matches["angDist"]) - 0.2:
+			confidence.append(-1)
+			continue
+
+		r = source["angDist"]
+		upper = r + 0.2
+		lower = r - 0.2
+
+		if lower < 0:
+			lower = 0
+			upper = 0.4
+
+		area = np.pi * upper**2 - np.pi * lower**2
+		all_matches = matches[matches["angDist"] >= lower]
+		all_matches = len(all_matches[all_matches["angDist"] <= upper])
+
+		# Confidence = 1 - (expected number of matches with random uniform distribution / actual number of matches)
+		prob = density * area * len(table) / all_matches
+		prob = 1 - prob
+
+		confidence.append(round(prob, 4))
+	print("\n", end = '')
+	return confidence
 		
-		masterfiles = glob.glob("input/racs*%s.csv" % survey["type"])
-		
-		
+
+
