@@ -15,19 +15,19 @@ def download_csv(sheet_id):
 	return
 	
 # Generate SQL table header from csv file
-def generate_header(file, table_name, prim_key = "id"):
+def generate_header(table, table_name, prim_key = "id"):
 
 	# Check that primary key exists
-	if prim_key not in file.keys():
+	if prim_key not in table.keys():
 		print("ERROR: Please specify an existing column name for primary key")
 		sys.exit()
 
 	# Determine key type
 	keytypes = []
-	dbkeys = file.keys()
+	dbkeys = table.keys()
 	for k in range(0, len(dbkeys)):
 		key = dbkeys[k]
-		keytype = str(file[key].dtype)
+		keytype = str(table[key].dtype)
 		
 		# Determine type for database
 		if "int" in keytype:
@@ -45,6 +45,10 @@ def generate_header(file, table_name, prim_key = "id"):
 			dbkeys[k] = 'x'+key
 		if '.' in key:
 			dbkeys[k] = '\"'+key+'\"'
+		if key != "id" and key.lower() == "id": # check that foreign key "id" (from master) is not duplicated here
+			# Duplicate column
+			dbkeys[k] = key+"_x"
+
 			
 	# Generate create table command
 	header = "CREATE TABLE %s(\n" % table_name

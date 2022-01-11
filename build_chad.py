@@ -7,7 +7,7 @@ __version__ = "0.2"
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 import time
-from modules import rebuild, crossmatch
+from modules import rebuild, crossmatch, addsurveys
 from modules import functions as f
 
 def main():
@@ -50,7 +50,8 @@ def main():
         crossmatch.crossmatch(master = "racs", max_confidence = args.confidence)
 
     if args.addsurveys == True:
-    	print("Importing surveys into CHAD...")
+        print("Importing surveys into CHAD...")
+        addsurveys.addsurveys()
 
 if __name__ == "__main__":
     main()

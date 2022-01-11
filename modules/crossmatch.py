@@ -53,11 +53,16 @@ def crossmatch(master, max_confidence):
 			matches['confidence'] = confidence
 			matches = matches[matches['confidence'] > (max_confidence/100)]
 
+			# Prepare table for saving
+			table = ascii.read(file, format="csv")
+			# Only want to save angDist, master id, and target table columns
+			matches = matches[matches.colnames[:2] + matches.colnames[len(table.colnames) + 1:]]
+
 			# Save the crossmatched result to use later
 			print("Writing table...")
 			if not os.path.exists("output"):
 				os.makedirs("output")
-			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name, chunk), overwrite=True)
+			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk), overwrite=True)
 			end = time.time()
 			total = end-start
 			print("Total time: %.2f min" % (total/60.))
