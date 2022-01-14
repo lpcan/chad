@@ -45,5 +45,8 @@ def show(id, table):
     # Get the master table information about the source
     source = db.search_id(id, table)
     colnames = db.colnames(table)
+
+    # List other tables that match this source
+    match_tables = db.get_matches(id, curtable = table)
     
-    return render_template("show.html", source=source, colnames=colnames)
+    return render_template("show.html", source=source, id=id, colnames=colnames, match_tables=match_tables)

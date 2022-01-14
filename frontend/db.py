@@ -45,3 +45,27 @@ def search_id(id, table):
     result = cur.fetchone()
 
     return result
+
+# Return matching sources from other tables to RACS id
+def get_matches(id, curtable):
+    conn, cur = connect()
+
+    # Get a list of all other tables
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
+    tables = cur.fetchall()
+
+    tables = [table for table in tables if curtable not in table[0]]
+    
+    # Search through all other tables for matching object
+    match_tables = []
+    for table in tables:
+        cur.execute("SELECT * FROM " + table[0] + " WHERE id = %s", (id,))
+        m = cur.fetchall()
+        if len(m) > 0:
+            match_tables.append(table[0])
+    
+    conn.close()
+    cur.close()
+    
+    return match_tables
+    

@@ -13,5 +13,12 @@
         </tr>
     </table>
 
+    Other tables matching this source:<br>
+    <body>
+        {% for table in match_tables %}
+            <a href="{{url_for('show', id=id, table=table)}}"> {{ table | capitalize}} </a>
+        {% endfor %}
+    </body>
     
+
 {% endblock %}
