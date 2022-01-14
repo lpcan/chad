@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Search results for catalogue {{ search_params[3] }}</h2>
+    <body>RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}, radius: {{ search_params[2] }}</body>
+    <table>
+        <tr>
+            <th>Source Name</th>
+            <th>RA</th>
+            <th>DEC</th>
+        </tr>
+        {% with name, ra, dec = results %}
+        {% for i in range(name | length) %}
+            <tr>
+                <td><a href="{{url_for('show', id=ids[i], table=search_params[3])}}">{{ name[i] }}</a></td>
+                <td>{{ ra[i] }}</td>
+                <td>{{ dec[i] }}</td>
+            </tr>
+        {% endfor %}
+        {% endwith %}
+    </table>
+{% endblock %}

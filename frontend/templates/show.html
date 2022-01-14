@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <table>
+        <tr>
+            {% for col in colnames %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for elem in source %}
+                <td>{{ elem }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+
+    
+{% endblock %}
