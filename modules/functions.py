@@ -54,7 +54,7 @@ def generate_header(table, table_name, prim_key = "id"):
 	header = "CREATE TABLE %s(\n" % table_name
 	
 	for i in range(0, len(dbkeys)):
-		if dbkeys[i] == prim_key:
+		if dbkeys[i] == prim_key or dbkeys[i] == prim_key+"_x":
 			header = header + "%s %s PRIMARY KEY,\n" % (dbkeys[i], keytypes[i])
 		else:
 			header = header + "%s %s,\n" % (dbkeys[i], keytypes[i])
