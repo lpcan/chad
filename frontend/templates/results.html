@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
     <h2>Search results for catalogue {{ search_params[3] }}</h2>
-    <body>RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}, radius: {{ search_params[2] }}</body>
+    {% if pos_search %}
+        <body>RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}, radius: {{ search_params[2] }}</body>
+    {% endif %}
     <table>
         <tr>
             <th>Source Name</th>
@@ -11,11 +13,15 @@
         {% with name, ra, dec = results %}
         {% for i in range(name | length) %}
             <tr>
-                <td><a href="{{url_for('show', id=ids[i], table=search_params[3])}}">{{ name[i] }}</a></td>
+                <td><a href="{{url_for('show_summary', id=ids[i])}}">{{ name[i] }}</a></td>
                 <td>{{ ra[i] }}</td>
                 <td>{{ dec[i] }}</td>
             </tr>
         {% endfor %}
         {% endwith %}
     </table>
+
+    {% if trunc == True %}
+        Only showing first 100 results
+    {% endif %}
 {% endblock %}

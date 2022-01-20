@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Source name:</h3>
+    <body>{{ source['name'] }}</body>
+
+    <h3>Position: </h3>
+    <table>
+        <tr> 
+            <th>RA [deg]</th>
+            <th>Dec [deg]</th>
+            <th>Galactic lon, lat [deg]</th>
+        </tr>
+        <tr>
+            <td>{{ source['ra'] }}+/-{{ source['e_ra'] }}</td>
+            <td>{{ source['dec'] }}+/-{{ source['e_dec'] }}</td>
+            <td>{{ source['gal_lon'] }}, {{source['gal_lat'] }}</td>
+        </tr>
+    </table>
+
+    <h3>Flux information:</h3>
+    <table>
+        <tr>
+            <th>Total flux [mJy]</th>
+            <th>Peak flux [mJy]</th>
+        </tr>
+        <tr>
+            <td>{{ source['total_flux_source'] }}+/-{{ source['e_total_flux_source'] }}</td>
+            <td>{{ source['peak_flux'] }}+/-{{ source['e_peak_flux'] }}</td>
+        </tr>
+    </table>
+
+    <h3>Source shape:</h3>
+    <table>
+        <tr>
+            <th>Major axis ["]</th>
+            <th>Minor axis ["]</th>
+            <th>Position angle [deg]</th>
+            <th>Deconvolved maj axis ["]</th>
+            <th>Deconvolved min axis ["]</th>
+            <th>Deconvolved pa [deg]</th>
+        </tr>
+        <tr>
+            <td>{{ source['maj'] }}+/-{{ source['e_maj'] }}</td>
+            <td>{{ source['min'] }}+/-{{ source['e_min'] }}</td>
+            <td>{{ source['pa'] }}+/-{{ source['e_pa'] }}</td>
+            <td>{{ source['dc_maj'] }}+/-{{ source['e_dc_maj'] }}</td>
+            <td>{{ source['dc_min'] }}+/-{{ source['e_dc_min'] }}</td>
+            <td>{{ source['dc_pa'] }}+/-{{ source['e_dc_pa'] }}</td>
+        </tr>
+    </table>
+    <br>
+    {% if table == "racs_island" %}
+        Number of Gaussian components: {{ source['n_gaus'] }} [<a href="{{url_for('find_components', source_id=source['source_id'])}}">View</a>]
+    {% else %}
+        [<a href="{{url_for('find_source', source_id=source['source_id'])}}">View island</a>]
+    {% endif %}
+    <br><br>
+    {% if match_tables | length > 0 %}
+    Other tables matching this source:<br>
+    <body>
+        {% for table in match_tables %}
+            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a>
+        {% endfor %}
+    </body>
+    {% endif %}
+
+{% endblock %}

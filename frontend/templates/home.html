@@ -21,6 +21,11 @@
             <option value="component">component</option>
             <option value="island">island</option>
         </select>
+        <br>
+        <input type="checkbox" id="flux" name="flux">
+        <label for="flux">Select only sources brighter than </label>
+        <input type="text" name="min_flux" size="4">mJy
+        <br>
         <input type="submit" value="Search">
     </form>
 
@@ -29,5 +34,7 @@
         Invalid search, please try again!
         {% endif %}
     </body>
+    
+    <h3>Custom Search</h3>
 
 {% endblock %}

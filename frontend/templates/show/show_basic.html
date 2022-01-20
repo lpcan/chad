@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Source name:</h3>
+    <body>{{ source['name'] }}</body>
+
+    <h3>Position: </h3>
+    <table>
+        <tr> 
+            <th>RA [deg]</th>
+            <th>Dec [deg]</th>
+        </tr>
+        <tr>
+            <td>{{ source['ra'] }}</td>
+            <td>{{ source['dec'] }}</td>
+        </tr>
+    </table>
+    <br>
+    Angular distance from RACS source <a href="{{url_for('show', id=source['id'], table=match_tables[0])}}">{{ racs_match }}</a>: {{ source['angdist'] | round(3) }}"
+    <br>
+    Match confidence: {{ (source['confidence']*100)|round(2) }}%
+
+    <h3>Table entry: </h3>
+    <table>
+        <tr>
+            {% for key in source if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+                <th>{{ key | e }}</th>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for key in source if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+                <td>{{ source[key] | e }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+
+    <br><br>
+    Other tables matching this source:<br>
+    <body>
+        {% for table in match_tables %}
+            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a>
+        {% endfor %}
+    </body>
+    
+{% endblock %}

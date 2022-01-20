@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+    <h3>Source name:</h3>
+    <body>{{ source['name'] }}</body>
+
+    <h3>Position: </h3>
+    <table>
+        <tr> 
+            <th>RA [deg]</th>
+            <th>Dec [deg]</th>
+            <th>Unc maj axis ["]</th>
+            <th>Unc min axis ["]</th>
+            <th>Unc ellipse pos angle [deg]</th>
+        </tr>
+        <tr>
+            <td>{{ source['ra'] }}</td>
+            <td>{{ source['dec'] }}</td>
+            <td>{{ source['eemaj'] }}</td>
+            <td>{{ source['eemin'] }}</td>
+            <td>{{ source['eepa'] }}</td>
+        </tr>
+    </table>
+    <br>
+    Angular distance from RACS source <a href="{{url_for('show', id=source['id'], table=match_tables[0])}}">{{ racs_match }}</a>: {{ source['angdist'] | round(3) }}"
+    <br>
+    Match confidence: {{ (source['confidence']*100)|round(2) }}%
+
+    <h3>Flux information:</h3>
+    <table>
+        <tr>
+            <th>W1 mag</th>
+            <th>W2 mag</th>
+            <th>W3 mag</th>
+            <th>W4 mag</th>
+            <th>J mag</th>
+            <th>H mag</th>
+            <th>K mag</th>
+        </tr>
+        <tr>
+            <td>{{ source['w1mag'] }}{% if source['e_w1mag'] != None %}+/-{{ source['e_w1mag'] }}{% endif %}</td>
+            <td>{{ source['w2mag'] }}{% if source['e_w2mag'] != None %}+/-{{ source['e_w2mag'] }}{% endif %}</td>
+            <td>{{ source['w3mag'] }}{% if source['e_w3mag'] != None %}+/-{{ source['e_w3mag'] }}{% endif %}</td>
+            <td>{{ source['w4mag'] }}{% if source['e_w4mag'] != None %}+/-{{ source['e_w4mag'] }}{% endif %}</td>
+            <td>{{ source['jmag'] }}{% if source['e_jmag'] != None %}+/-{{ source['e_jmag'] }}{% endif %}</td>
+            <td>{{ source['hmag'] }}{% if source['e_hmag'] != None %}+/-{{ source['e_hmag'] }}{% endif %}</td>
+            <td>{{ source['kmag'] }}{% if source['e_kmag'] != None %}+/-{{ source['e_kmag'] }}{% endif %}</td>
+        </tr>
+    </table>
+
+    <br>
+    Other tables matching this source:<br>
+    <body>
+        {% for table in match_tables %}
+            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a>
+        {% endfor %}
+    </body>
+    
+{% endblock %}
