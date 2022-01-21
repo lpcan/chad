@@ -20,10 +20,16 @@
     <h3>Flux information:</h3>
     <table>
         <tr>
-            <th>Total flux [mJy]</th>
+            {% if table == "racs_component" %}
+            <th>Total flux gaussian [mJy]</th>
+            {% endif %}
+            <th>Total flux source [mJy]</th>
             <th>Peak flux [mJy]</th>
         </tr>
         <tr>
+            {% if table == "racs_component" %}
+            <td>{{ source['total_flux_gaussian'] }}+/-{{ source['e_total_flux_gaussian'] }}</td>
+            {% endif %}
             <td>{{ source['total_flux_source'] }}+/-{{ source['e_total_flux_source'] }}</td>
             <td>{{ source['peak_flux'] }}+/-{{ source['e_peak_flux'] }}</td>
         </tr>

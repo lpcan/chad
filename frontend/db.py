@@ -14,24 +14,30 @@ def connect():
 
 # Perform a positional search against RACS catalogues. 
 # Constraints must be passed in as a list of tuples where each constraint = (colname, min=None, max=None)
-def cone_search(ra, dec, radius, cat, min_flux = None):
+def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
     conn, cur = connect()
     # Convert everything to radians
     radius = np.radians(radius / 60)
     ra = np.radians(ra)
     dec = np.radians(dec)
 
-    flux_condition = ""
-    if min_flux != None: 
-        # Construct flux constraint
-        # Perform cone search with conditions (if any)
-        cur.execute(sql.SQL("SELECT * FROM {} WHERE ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
-                    COS(RADIANS(ra)-%s)) < %s AND peak_flux >= %s ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
-                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat)), (dec, dec, ra, radius, min_flux, ra, dec))
+    flux_constraint = ""
+    values = (dec, dec, ra, radius, ra, dec)
+    if min_flux != None:
+        flux_constraint = " AND peak_flux >= %s"
+        values = (dec, dec, ra, radius, min_flux, ra, dec)
+
+    # Perform cone search with conditions (if any)
+    if force_match != None: 
+        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id WHERE \
+                    ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
+                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
+                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat), sql.Identifier(cat), \
+                    sql.Identifier(force_match), sql.Identifier(cat), sql.Identifier(force_match)), values)
     else:
         cur.execute(sql.SQL("SELECT * FROM {} WHERE ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
-                    COS(RADIANS(ra)-%s)) < %s ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
-                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat)), (dec, dec, ra, radius, ra, dec))
+                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
+                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat)), values)
 
     results = cur.fetchmany(100) # Return first 100 results?
     cur.close()
@@ -92,7 +98,8 @@ def get_matches(id, curtable):
     conn.close()
     
     return match_tables
-    
+
+# For a given source, find all associated components
 def find_components(source_id):
     conn, cur = connect()
 
@@ -105,6 +112,7 @@ def find_components(source_id):
 
     return comp
 
+# Search for an exact value in a given table column
 def search_exact(table, colname, constraint):
     conn, cur = connect()
 
@@ -116,3 +124,42 @@ def search_exact(table, colname, constraint):
     conn.close()
 
     return r
+
+# Search for the closest source to a given RA and DEC
+def search_closest(ra, dec, table, min_flux = None, force_match = None):
+    conn, cur = connect()
+
+    flux_constraint = ""
+    values = (ra, dec, dec)
+    if min_flux != None:
+        flux_constraint = " WHERE peak_flux >= %s"
+        values = (min_flux, ra, dec, dec)
+
+    if force_match != None:
+        # Using the small angle approximation since we assume there will always be a source < 1 degree away
+        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id" + flux_constraint +" ORDER BY \
+                    SQRT(POWER((%s-ra)*COS(%s), 2)+POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table),\
+                    sql.Identifier(table), sql.Identifier(force_match), sql.Identifier(table), sql.Identifier(force_match)), \
+                    values)
+    else:
+        cur.execute(sql.SQL("SELECT * FROM {}" + flux_constraint + " ORDER BY SQRT(POWER((%s-ra)*COS(%s), 2)+\
+                    POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table)), values)
+
+    result = cur.fetchone()
+
+    conn.close()
+    cur.close()
+
+    return result
+
+# Get a list of all tables in the database
+def get_tables():
+    conn, cur = connect()
+
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
+    tables = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return tables

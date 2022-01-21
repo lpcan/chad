@@ -3,12 +3,12 @@
     <h2>{{ dicts[0]["name"] }}</h2>
     RA: {{ dicts[0]["ra"] }} DEC: {{ dicts[0]["dec"] }}
     <br>
-    Total flux: 
-    {% for key in dicts[0] %}
-        {% if "total_flux" in key and "e_" not in key %}
-            {{ dicts[0][key] }}mJy
-        {% endif %}
-    {% endfor %}
+    {% if tables[0] == "racs_component" %}
+        Total flux gaussian: {{ dicts[0]["total_flux_gaussian"] }}mJy <br>
+        Total flux source: {{ dicts[0]["total_flux_source"] }}mJy
+    {% else %}
+        Total flux: {{ dicts[0]["total_flux_source"] }}mJy
+    {% endif %}
     <br>
     [<a href="{{url_for('show', id=dicts[0]['id'], table=tables[0])}}">View More</a>]
     <br>

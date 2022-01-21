@@ -1,16 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-    <h2>Search results for catalogue {{ search_params[3] }}</h2>
+    <h2>Search results for catalogue {{ search_params[-1] }}</h2>
     {% if pos_search %}
-        <body>RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}, radius: {{ search_params[2] }}</body>
+        RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}
+        {% if search_params | length > 3 %}
+        , radius: {{ search_params[2] }}
+        {% endif %}
     {% endif %}
     <table>
+        {% with name, ra, dec = results %}
+        {% if name | length > 0 %}
         <tr>
             <th>Source Name</th>
             <th>RA</th>
             <th>DEC</th>
         </tr>
-        {% with name, ra, dec = results %}
+        {% endif %}
+        
         {% for i in range(name | length) %}
             <tr>
                 <td><a href="{{url_for('show_summary', id=ids[i])}}">{{ name[i] }}</a></td>
@@ -18,6 +24,10 @@
                 <td>{{ dec[i] }}</td>
             </tr>
         {% endfor %}
+        {% if name | length == 0 %}
+            <br><br>
+            No matches found!
+        {% endif %}
         {% endwith %}
     </table>
 

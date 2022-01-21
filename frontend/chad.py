@@ -6,10 +6,18 @@ import db
 app = Flask(__name__)
 
 @app.route('/')
-def home(search_error = False):
-    return render_template("home.html", search_error = search_error)
+def home():
+    tables = db.get_tables()
+    tables = [table[0] for table in tables if "racs" not in table[0]]
+    return render_template("home.html", search_error = None, other_tables = tables)
 
-@app.route('/result', methods=["POST", "GET"])
+@app.route('/error-<error>')
+def home_error(error):
+    tables = db.get_tables()
+    tables = [table for table in tables if "racs" not in table]
+    return render_template("home.html", search_error = error, other_tables = tables)
+
+@app.route('/result-conesearch', methods=["POST", "GET"])
 def results():
     if request.method == "GET":
         return redirect(url_for("home"))
@@ -20,8 +28,13 @@ def results():
     radius = request.form['radius']
     cattype = request.form['cattype']
     table = "racs_"+cattype
+    min_flux = None
+    force_match = None
+
     if request.form.get('flux') == "on":
         min_flux = request.form['min_flux']
+    if request.form.get('forcematch') == "on":
+        force_match = request.form['forcematch_table']
     try: # Check that all parameters are ok
         ra = float(ra)
         dec = float(dec)
@@ -29,13 +42,10 @@ def results():
         if request.form.get('flux') == "on":
             min_flux = float(min_flux)
     except:
-        return render_template("home.html", search_error = True) # Invalid request
+        return redirect(url_for("home_error", error="pos")) # Invalid request
 
     # Get the results from the database
-    if request.form.get('flux') == "on":
-        results = db.cone_search(ra, dec, radius, table, min_flux = min_flux)
-    else: 
-        results = db.cone_search(ra, dec, radius, table)
+    results = db.cone_search(ra, dec, radius, table, min_flux = min_flux, force_match = force_match)
     
     trunc = False
     if len(results) == 100: # Only return the first 100 results
@@ -43,15 +53,61 @@ def results():
 
     colnames = db.colnames(table)
     # Find the columns we want
-    name_idx = results[0].index([x for x in results[0] if type(x) == str][0])
-    name = [x[name_idx] for x in results] # Take first column with type string as source name
-    ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
-    source_ra = [x[ra_idx] for x in results]
-    dec_idx = colnames.index([x for x in colnames if "dec" in x][0])
-    source_dec = [x[dec_idx] for x in results]
-    ids = [x[0] for x in results]
+    if len(results) > 0:
+        name_idx = results[0].index([x for x in results[0] if type(x) == str][0])
+        name = [x[name_idx] for x in results] # Take first column with type string as source name
+        ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
+        source_ra = [x[ra_idx] for x in results]
+        dec_idx = colnames.index([x for x in colnames if "de" in x][0])
+        source_dec = [x[dec_idx] for x in results]
+        ids = [x[0] for x in results]
+    else:
+        name = []
+        source_ra = []
+        source_dec = []
+        ids = []
 
     return render_template("results.html", pos_search=True, search_params=(ra, dec, radius, table), results=(name, source_ra, source_dec), ids=ids, trunc = trunc)
+
+@app.route('/result-closest', methods=["POST", "GET"])
+def result_closest():
+    if request.method == "GET":
+        return redirect(url_for("home"))
+    
+    # Check the coordinates format
+    ra = request.form['ra']
+    dec = request.form['dec']
+    cattype = request.form['cattype']
+    table = "racs_"+cattype
+    min_flux = None
+    force_match = None
+
+    if request.form.get('flux') == "on":
+        min_flux = request.form['min_flux']
+    if request.form.get('forcematch') == "on":
+        force_match = request.form['forcematch_table']
+    try: # Check that all parameters are ok
+        ra = float(ra)
+        dec = float(dec)
+        if request.form.get('flux') == "on":
+            min_flux = float(min_flux)
+    except:
+        return redirect(url_for("home_error", error="closest"))#render_template("home.html", search_error = "closest") # Invalid request
+    
+    # Get the results from the database
+    result = db.search_closest(ra, dec, table, min_flux = min_flux, force_match = force_match)
+
+    colnames = db.colnames(table)
+    # Find the columns we want
+    name_idx = result.index([x for x in result if type(x) == str][0])
+    name = result[name_idx] # Take first column with type string as source name
+    ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
+    source_ra = result[ra_idx]
+    dec_idx = colnames.index([x for x in colnames if "de" in x][0])
+    source_dec = result[dec_idx]
+    id = result[0]
+
+    return render_template("results.html", pos_search=True, search_params=(ra, dec, table), results=([name], [source_ra], [source_dec]), ids=[id], trunc = False)
 
 @app.route('/summary/<int:id>')
 def show_summary(id):
@@ -144,10 +200,12 @@ def find_components(source_id):
     ra = [x[2] for x in components]
     dec = [x[3] for x in components]
 
+    if len(components) == 1:
+        # Go directly to show component page
+        return redirect(url_for("show_summary", id = id[0]))
     return render_template("results.html", pos_search=False, search_params=("","","","racs_component"), results=(name, ra, dec), ids=id)
 
 @app.route('/<source_id>/source')
 def find_source(source_id):
     id = db.search_exact("racs_island", "source_id", source_id)
     return redirect(url_for('show', id=id[0], table="racs_island"))
-    
