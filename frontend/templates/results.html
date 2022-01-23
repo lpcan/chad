@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block title %}Search results {% endblock %}
 {% block content %}
     <h2>Search results for catalogue {{ search_params[-1] }}</h2>
     {% if pos_search %}
@@ -7,6 +8,7 @@
         , radius: {{ search_params[2] }}
         {% endif %}
     {% endif %}
+    
     <table>
         {% with name, ra, dec = results %}
         {% if name | length > 0 %}

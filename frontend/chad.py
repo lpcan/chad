@@ -14,7 +14,7 @@ def home():
 @app.route('/error-<error>')
 def home_error(error):
     tables = db.get_tables()
-    tables = [table for table in tables if "racs" not in table]
+    tables = [table[0] for table in tables if "racs" not in table[0]]
     return render_template("home.html", search_error = error, other_tables = tables)
 
 @app.route('/result-conesearch', methods=["POST", "GET"])
@@ -36,8 +36,21 @@ def results():
     if request.form.get('forcematch') == "on":
         force_match = request.form['forcematch_table']
     try: # Check that all parameters are ok
-        ra = float(ra)
-        dec = float(dec)
+        if ':' in ra: # hms format
+            h, m, s = ra.split(':')
+            h, m, s = float(h), float(m), float(s)
+            ra = 15*h+(15/60)*m+(15/3600)*s # Convert to degrees
+        else:
+            ra = float(ra)
+        if ':' in dec: # dms format
+            d, m, s = dec.split(':')
+            d, m, s = float(d), float(m), float(s)
+            if d < 0: # deal with negative declination
+                m = -m
+                s = -s
+            dec = d + m/60 + s/3600
+        else:
+            dec = float(dec)
         radius = float(radius)
         if request.form.get('flux') == "on":
             min_flux = float(min_flux)
@@ -87,8 +100,21 @@ def result_closest():
     if request.form.get('forcematch') == "on":
         force_match = request.form['forcematch_table']
     try: # Check that all parameters are ok
-        ra = float(ra)
-        dec = float(dec)
+        if ':' in ra: # hms format
+            h, m, s = ra.split(':')
+            h, m, s = float(h), float(m), float(s)
+            ra = 15*h+(15/60)*m+(15/3600)*s # Convert to degrees
+        else:
+            ra = float(ra)
+        if ':' in dec: # dms format
+            d, m, s = dec.split(':')
+            d, m, s = float(d), float(m), float(s)
+            if d < 0: # deal with negative declination
+                m = -m
+                s = -s
+            dec = d + m/60 + s/3600
+        else:
+            dec = float(dec)
         if request.form.get('flux') == "on":
             min_flux = float(min_flux)
     except:
