@@ -17,6 +17,12 @@ def home_error(error):
     tables = [table[0] for table in tables if "racs" not in table[0]]
     return render_template("home.html", search_error = error, other_tables = tables)
 
+@app.route('/about')
+def about():
+    tables = db.get_tables()
+    tables = [table[0] for table in tables]
+    return render_template("about.html", tables=tables) 
+
 @app.route('/result-conesearch', methods=["POST", "GET"])
 def results():
     if request.method == "GET":
