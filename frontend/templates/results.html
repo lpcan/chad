@@ -3,9 +3,9 @@
 {% block content %}
     <h2>Search results for catalogue {{ search_params[-1] }}</h2>
     {% if pos_search %}
-        RA: {{ search_params[0] }}, DEC: {{ search_params[1] }}
-        {% if search_params | length > 3 %}
-        , radius: {{ search_params[2] }}
+        RA: {{ search_params[0] }}&#176;, DEC: {{ search_params[1] }}&#176;
+        {%- if search_params | length > 3 -%}
+        , radius: {{ search_params[2] }}'
         {% endif %}
     {% endif %}
     
@@ -14,8 +14,8 @@
         {% if name | length > 0 %}
         <tr>
             <th>Source Name</th>
-            <th>RA</th>
-            <th>DEC</th>
+            <th>RA [&#176;]</th>
+            <th>DEC [&#176;]</th>
         </tr>
         {% endif %}
         

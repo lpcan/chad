@@ -47,7 +47,6 @@
             <td>{{ source['kmag'] }}{% if source['e_kmag'] != None %}+/-{{ source['e_kmag'] }}{% endif %}</td>
         </tr>
     </table>
-
     {% if source['w1mag'] != None and source['w2mag'] != None and source['w3mag'] != None %}
         <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
 
@@ -64,6 +63,18 @@
                 />
         </svg>
     {% endif %}
+    <!-- Image Viewer -->
+    <div class="aladin-viewer2">
+    <link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" /> 
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.1.min.js" charset="utf-8"></script>
+    <div id="aladin-lite-div" style="width:400px;height:400px;"></div>
+    <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        var target = "{{ source['ra'] }}" + " " + "{{ source['dec'] }}"
+        var aladin = A.aladin('#aladin-lite-div', {survey: "P/allWISE/color", fov:0.2, target: target, showLayersControl: false, showGotoControl: false});
+    </script>
+    </div>
+
     <br>
     Other tables matching this source:<br>
     <body>

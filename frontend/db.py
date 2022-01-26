@@ -22,22 +22,23 @@ def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
     dec = np.radians(dec)
 
     flux_constraint = ""
-    values = (dec, dec, ra, radius, ra, dec)
+    values = (dec, dec, ra, radius, dec, dec, ra)
     if min_flux != None:
         flux_constraint = " AND peak_flux >= %s"
-        values = (dec, dec, ra, radius, min_flux, ra, dec)
+        values = (dec, dec, ra, radius, min_flux, dec, dec, ra)
 
     # Perform cone search with conditions (if any)
     if force_match != None: 
+        # Only select rows that have a match in the other table
         cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id WHERE \
                     ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
-                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
-                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat), sql.Identifier(cat), \
+                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY ACOS(SIN(RADIANS(dec))*SIN(%s)+\
+                    COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s))").format(sql.Identifier(cat), sql.Identifier(cat), \
                     sql.Identifier(force_match), sql.Identifier(cat), sql.Identifier(force_match)), values)
     else:
         cur.execute(sql.SQL("SELECT * FROM {} WHERE ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
-                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY SQRT(POWER(RADIANS(ra)-%s,2)+\
-                    POWER(RADIANS(dec)-%s,2))").format(sql.Identifier(cat)), values)
+                    COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY ACOS(SIN(RADIANS(dec))*SIN(%s)+\
+                    COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s))").format(sql.Identifier(cat)), values)
 
     results = cur.fetchmany(100) # Return first 100 results?
     cur.close()

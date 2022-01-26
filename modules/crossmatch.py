@@ -14,7 +14,7 @@ import time
 import glob
 import os
 
-def crossmatch(master, max_confidence):
+def crossmatch(master, max_confidence, force):
 	
 	# Get the surveys to crossmatch
 	surveys = ascii.read("input/chadsurveys.csv", format = "csv")
@@ -25,6 +25,11 @@ def crossmatch(master, max_confidence):
 
 		# Get the master files
 		masterfiles = glob.glob("input/%s_%s*csv" % (master, survey["type"]))
+
+		# Get already processed files
+		if not os.path.exists("output"):
+			os.makedirs("output")
+		processed = glob.glob("output/*")
 
 		for file in masterfiles:
 			chunk = file.split('_')[-1].split('.')[0]
@@ -38,6 +43,11 @@ def crossmatch(master, max_confidence):
 				print("Table %s is not available! Continuing..." % v_code)
 				break
 
+			# Check if this survey has already been matched
+			if "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk) in processed and not force:
+				print("File has already been processed! Continuing...")
+				break
+					
 			start = time.time() # Time the crossmatch
 			print("Crossmatching %s with file %s" % (name, file))
 			try:
@@ -60,8 +70,6 @@ def crossmatch(master, max_confidence):
 
 			# Save the crossmatched result to use later
 			print("Writing table...")
-			if not os.path.exists("output"):
-				os.makedirs("output")
 			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk), overwrite=True)
 			end = time.time()
 			total = end-start

@@ -16,11 +16,11 @@
 
     <form action="{{url_for('results')}}" method=POST name="pos_search">
         <label for="ra">RA: </label>
-        <input type="text" name="ra">
+        <input type="text" name="ra" size="10">
         <label for="dec">DEC: </label>
-        <input type="text" name="dec">
+        <input type="text" name="dec" size="10">
         <label for="radius"> Search radius: </label>
-        <input type="text" name="radius">
+        <input type="text" name="radius" size="5">
         <label for="cattype">Catalogue type: </label>
         <select name="cattype">
             <option value="component">component</option>
@@ -55,9 +55,9 @@
 
     <form action="{{url_for('result_closest')}}" method=POST name="close">
         <label for="ra">RA: </label>
-        <input type="text" name="ra">
+        <input type="text" name="ra" size="10">
         <label for="dec">DEC: </label>
-        <input type="text" name="dec">
+        <input type="text" name="dec" size="10">
         <label for="cattype">Catalogue type: </label>
         <select name="cattype">
             <option value="component">component</option>

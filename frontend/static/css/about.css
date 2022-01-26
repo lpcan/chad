@@ -30,3 +30,16 @@
     margin-right: 50px;
     line-height: 1.5;
 }
+
+/* Other content style */
+.author {
+    color: #505050;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+figcaption {
+    text-align: center;
+    color:#505050;
+    font-size: 12px;
+}

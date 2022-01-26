@@ -22,7 +22,12 @@ def main():
     parser.add_argument("-c", "--crossmatch",
     		default = False,
     		action = "store_true",
-    		help = "Specify whether to re-perform crossmatch of surveys (default %(default)s")
+    		help = "Specify whether to crossmatch surveys (default %(default)s")
+    
+    parser.add_argument("-f", "--force",
+            default = False,
+            action = "store_true",
+            help = "Force cross match of all surveys, without skipping already processed surveys (default %(default)s")
 
     parser.add_argument("-cl", "--confidence",
             type = int, 
@@ -47,7 +52,7 @@ def main():
     	
     if args.crossmatch == True:
         print("Crossmatching surveys...")
-        crossmatch.crossmatch(master = "racs", max_confidence = args.confidence)
+        crossmatch.crossmatch(master = "racs", max_confidence = args.confidence, force = args.force)
 
     if args.addsurveys == True:
         print("Importing surveys into CHAD...")

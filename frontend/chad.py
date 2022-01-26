@@ -155,7 +155,10 @@ def show_summary(id):
     other_tables = db.get_matches(id, table)
     if len(other_tables) > 0:
         tables.append(db.get_matches(id, table)[0])
-
+    else:
+        # If this source is in no other tables, redirect straight to the RACS show page
+        return redirect(url_for("show", id = id, table = tables[0]))
+    
     # Get all table entries for this source
     entries = []
     for t in tables:
