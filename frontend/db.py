@@ -12,6 +12,30 @@ def connect():
     cur = conn.cursor()
     return conn, cur
 
+# Get a list of all tables in the database
+def get_tables():
+    conn, cur = connect()
+
+    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
+    tables = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return tables
+
+# Return a list of column names from the database
+def colnames(cat):
+    conn, cur = connect()
+
+    cur.execute("SELECT * FROM " + cat + " LIMIT 0")
+    colnames = [desc[0] for desc in cur.description]
+
+    cur.close()
+    conn.close()
+
+    return colnames
+
 # Perform a positional search against RACS catalogues. 
 # Constraints must be passed in as a list of tuples where each constraint = (colname, min=None, max=None)
 def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
@@ -46,17 +70,32 @@ def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
 
     return results
 
-# Return a list of column names from the database
-def colnames(cat):
+# Search for the closest source to a given RA and DEC
+def search_closest(ra, dec, table, min_flux = None, force_match = None):
     conn, cur = connect()
 
-    cur.execute("SELECT * FROM " + cat + " LIMIT 0")
-    colnames = [desc[0] for desc in cur.description]
+    flux_constraint = ""
+    values = (ra, dec, dec)
+    if min_flux != None:
+        flux_constraint = " WHERE peak_flux >= %s"
+        values = (min_flux, ra, dec, dec)
 
-    cur.close()
+    if force_match != None:
+        # Using the small angle approximation since we assume there will always be a source < 1 degree away
+        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id" + flux_constraint +" ORDER BY \
+                    SQRT(POWER((%s-ra)*COS(%s), 2)+POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table),\
+                    sql.Identifier(table), sql.Identifier(force_match), sql.Identifier(table), sql.Identifier(force_match)), \
+                    values)
+    else:
+        cur.execute(sql.SQL("SELECT * FROM {}" + flux_constraint + " ORDER BY SQRT(POWER((%s-ra)*COS(%s), 2)+\
+                    POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table)), values)
+
+    result = cur.fetchone()
+
     conn.close()
+    cur.close()
 
-    return colnames
+    return result
 
 # Search for a source by id
 def search_id(id, table):
@@ -125,42 +164,3 @@ def search_exact(table, colname, constraint):
     conn.close()
 
     return r
-
-# Search for the closest source to a given RA and DEC
-def search_closest(ra, dec, table, min_flux = None, force_match = None):
-    conn, cur = connect()
-
-    flux_constraint = ""
-    values = (ra, dec, dec)
-    if min_flux != None:
-        flux_constraint = " WHERE peak_flux >= %s"
-        values = (min_flux, ra, dec, dec)
-
-    if force_match != None:
-        # Using the small angle approximation since we assume there will always be a source < 1 degree away
-        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id" + flux_constraint +" ORDER BY \
-                    SQRT(POWER((%s-ra)*COS(%s), 2)+POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table),\
-                    sql.Identifier(table), sql.Identifier(force_match), sql.Identifier(table), sql.Identifier(force_match)), \
-                    values)
-    else:
-        cur.execute(sql.SQL("SELECT * FROM {}" + flux_constraint + " ORDER BY SQRT(POWER((%s-ra)*COS(%s), 2)+\
-                    POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table)), values)
-
-    result = cur.fetchone()
-
-    conn.close()
-    cur.close()
-
-    return result
-
-# Get a list of all tables in the database
-def get_tables():
-    conn, cur = connect()
-
-    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
-    tables = cur.fetchall()
-
-    cur.close()
-    conn.close()
-
-    return tables

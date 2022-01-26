@@ -44,8 +44,13 @@ def crossmatch(master, max_confidence, force):
 				break
 
 			# Check if this survey has already been matched
-			if "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk) in processed and not force:
-				print("File has already been processed! Continuing...")
+			done = False
+			for p in processed:
+				if "%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk) in p and not force:
+					print("File has already been processed! Continuing...")
+					done = True
+					break
+			if done == True:
 				break
 					
 			start = time.time() # Time the crossmatch
