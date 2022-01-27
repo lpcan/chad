@@ -42,12 +42,13 @@
     <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
     <script type="text/javascript">
         var target = "{{ source['ra'] }}" + " " + "{{ source['dec'] }}"
-        var aladin = A.aladin('#aladin-lite-div', {fov:1, target: target, showLayersControl: false, showGotoControl: false});
+        var aladin = A.aladin('#aladin-lite-div', {fov:6, target: target, showLayersControl: false, showGotoControl: false});
         aladin.setImageSurvey(aladin.createImageSurvey("P/ROSAT", "ROSAT", "http://alasky.cds.unistra.fr/ROSATWFC-new/ROSAT-WFC-color", "equatorial", 10, {imgFormat: 'png'}))
     </script>
     </div>
 
     <br>
+    <a href="{{url_for('show_summary', id=source['id'])}}">Summary Page</a><br><br>
     Other tables matching this source:<br>
     <body>
         {% for table in match_tables %}

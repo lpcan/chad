@@ -54,6 +54,7 @@
     {% endwith %}
 
     <br><br>
+    <a href="{{url_for('show_summary', id=source['id'])}}">Summary Page</a><br><br>
     Other tables matching this source:<br>
     <body>
         {% for table in match_tables %}

@@ -82,6 +82,7 @@
         aladin.setImageSurvey("P/RACS")
     </script>
     <br>
+    <a href="{{url_for('show_summary', id=source['id'])}}">Summary Page</a><br><br>
     {% if match_tables | length > 0 %}
     Other tables matching this source:<br>
     <body>
