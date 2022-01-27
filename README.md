@@ -7,3 +7,5 @@ The backend of CHAD is built on postgres. When running `build_chad.py`, there ar
 
 ### CHAD Frontend
 The frontend of CHAD runs using Flask. The postgres password will need to be changed in the `connect()` function in `frontend/db.py`. 
+
+To run the flask app on a Mac, first run `export FLASK_APP=chad FLASK_ENV="development"` to set the main app file and specify a development environment (to avoid warnings). Then the server can be started with `flask run`, and CHAD can be accessed at localhost:5000.
