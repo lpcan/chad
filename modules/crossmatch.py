@@ -46,8 +46,8 @@ def crossmatch(master, max_confidence, force):
 			# Check if this survey has already been matched
 			done = False
 			for p in processed:
-				if "%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk) in p and not force:
-					print("File has already been processed! Continuing...")
+				if "%s_%s_%s_%s.csv" % (master, survey['type'], name.lower().replace(" ", "_"), chunk) in p and not force:
+					print("Table %s_%s has already been processed! Continuing..." % (name.lower().replace(" ", "_"), chunk))
 					done = True
 					break
 			if done == True:
@@ -64,7 +64,7 @@ def crossmatch(master, max_confidence, force):
 			print("Culling crossmatch results... Max confidence level: %s%%" % str(max_confidence))
 			
 			# Calculate the confidence of each match and remove matches < confidence level
-			confidence = calc_confidence(v_code, matches, file)
+			confidence = calc_confidence(v_code, matches, file, max_sep = ang_sep)
 			matches['confidence'] = confidence
 			matches = matches[matches['confidence'] > (max_confidence/100)]
 
@@ -75,22 +75,20 @@ def crossmatch(master, max_confidence, force):
 
 			# Save the crossmatched result to use later
 			print("Writing table...")
-			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower(), chunk), overwrite=True)
+			ascii.write(matches, "output/%s_%s_%s_%s.csv" % (master, survey['type'], name.lower().replace(" ", "_"), chunk), overwrite=True)
 			end = time.time()
 			total = end-start
 			print("Total time: %.2f min" % (total/60.))
 			
 	print("Done crossmatching!")
 
-def calc_confidence(target_name, matches, master):
+def calc_confidence(target_name, matches, master, max_sep):
 
 	table = ascii.read(master, format = "csv")
 
 	# Estimate the density of the target survey by getting number of elements in a 1 degree radius around a random point in the patch -- TODO: how to get the "centre" of a patch that is weird and elongated e.g. racs galactic region
-	"""mean_ra = circmean(table['ra'], high = 360)
-	mean_dec = circmean(table['dec'], low = -90, high = 90)"""
-	rand_ra = table['ra'][int(len(table) / 2)]
-	rand_dec = table['dec'][int(len(table) / 2)]
+	rand_ra = matches['ra'][int(len(matches) / 2)]
+	rand_dec = matches['dec'][int(len(matches) / 2)]
 
 	# Count the number of sources in a 1 degree radius circle for both catalogues
 	data = TapPlus(url="http://tapvizier.u-strasbg.fr/TAPVizieR/tap")
@@ -105,7 +103,7 @@ def calc_confidence(target_name, matches, master):
 	for i, source in enumerate(matches):
 		print(f"{i}/{len(matches)}", end='\r')
 
-		if source["angDist"] > max(matches["angDist"]) - 0.2:
+		if source["angDist"] > max_sep - 0.2:
 			confidence.append(-1)
 			continue
 
@@ -124,9 +122,9 @@ def calc_confidence(target_name, matches, master):
 		# Confidence = 1 - (expected number of matches with random uniform distribution / actual number of matches)
 		prob = density * area * len(table) / all_matches
 		prob = 1 - prob
-
 		confidence.append(round(prob, 4))
-	print("\n", end = '')
+	print(f"{i+1}/{len(matches)}\n", end = '')
+	
 	return confidence
 		
 

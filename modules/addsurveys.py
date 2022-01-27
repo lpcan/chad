@@ -30,7 +30,7 @@ def addsurveys():
     # Process one survey at a time
     for survey in surveys:
         name = survey["survey"]
-        table_name = name.lower()
+        table_name = name.lower().replace(" ", "_")
 
         if survey["status"] != "import":
             print("Table %s not marked as import, continuing..." % name)
@@ -60,10 +60,13 @@ def addsurveys():
                 if prim_key == None:
                     # Try to find an alternate prim_key
                     for key in table.keys():
-                        if table_name in key.lower():
-                            prim_key = key # Set primary key as source name (usually in a column called table_name)
+                        name_split = table_name.split("_")
+                        for name in name_split:
+                            if name in key.lower():
+                                prim_key = key # Set primary key as source name (usually in a column called table_name)
                 # If prim_key is still none, ask for user to set primary key
                 if prim_key == None:
+                    print(table.keys())
                     while prim_key not in table.keys():
                         if prim_key != None: print("Invalid column name, please try again.")
                         prim_key = input("Please enter a column name for primary key: ")
