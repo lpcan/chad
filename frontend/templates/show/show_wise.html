@@ -79,7 +79,7 @@
     Other tables matching this source:<br>
     <body>
         {% for table in match_tables %}
-            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a>
+            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a> <br>
         {% endfor %}
     </body>
     

@@ -21,24 +21,43 @@
     Match confidence: {{ (source['confidence']*100)|round(2) }}%
 
     <h3>Table entry: </h3>
+    {% with keys = source.keys() | list %}
+    {% for i in range((source | length) // 6 + 1) %}
     <table>
         <tr>
-            {% for key in source if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+            {% for key in keys[(i-1)*6:i*6] if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
                 <th>{{ key | e }}</th>
             {% endfor %}
         </tr>
         <tr>
-            {% for key in source if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+            {% for key in keys[(i-1)*6:i*6] if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
                 <td>{{ source[key] | e }}</td>
             {% endfor %}
         </tr>
     </table>
+    <br>
+    {% endfor %}
+    {% with mod = (source | length) % 6 %}
+    <table>
+        <tr>
+            {% for key in keys[-mod-1:] if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+                <th>{{ key }}</th>
+            {% endfor %}
+        </tr>
+        <tr>
+            {% for key in keys[-mod-1:] if (key != "name" and key != "ra" and key != "dec" and key != "angdist" and key != "id") %}
+                <td>{{ source[key] }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+    {% endwith %}
+    {% endwith %}
 
     <br><br>
     Other tables matching this source:<br>
     <body>
         {% for table in match_tables %}
-            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a>
+            <a href="{{url_for('show', id=source['id'], table=table)}}"> {{ table | capitalize}} </a> <br>
         {% endfor %}
     </body>
     

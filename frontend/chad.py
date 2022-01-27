@@ -73,8 +73,9 @@ def results():
     colnames = db.colnames(table)
     # Find the columns we want
     if len(results) > 0:
-        name_idx = results[0].index([x for x in results[0] if type(x) == str][0])
+        name_idx = results[0].index([x for x in results[0] if type(x) == str and 'J' in x][0])
         name = [x[name_idx] for x in results] # Take first column with type string as source name
+
         ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
         source_ra = [x[ra_idx] for x in results]
         dec_idx = colnames.index([x for x in colnames if "de" in x][0])
@@ -131,8 +132,7 @@ def result_closest():
 
     colnames = db.colnames(table)
     # Find the columns we want
-    name_idx = result.index([x for x in result if type(x) == str][0])
-    name = result[name_idx] # Take first column with type string as source name
+    name = [x for x in result if type(x) == str and 'J' in x][0]
     ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
     source_ra = result[ra_idx]
     dec_idx = colnames.index([x for x in colnames if "de" in x][0])
@@ -154,7 +154,7 @@ def show_summary(id):
     tables = [table]
     other_tables = db.get_matches(id, table)
     if len(other_tables) > 0:
-        tables.append(db.get_matches(id, table)[0])
+        tables = tables + other_tables
     else:
         # If this source is in no other tables, redirect straight to the RACS show page
         return redirect(url_for("show", id = id, table = tables[0]))
@@ -167,7 +167,7 @@ def show_summary(id):
     # Get name, ra, dec and other information
     dicts = [{} for i in range(len(tables))]
     for i in range(len(tables)):
-        dicts[i]["name"] = [x for x in entries[i] if type(x) == str][0]
+        dicts[i]["name"] = [x for x in entries[i] if type(x) == str and 'J' in x][0]
         colnames = db.colnames(tables[i])
         dicts[i]["ra"] = entries[i][colnames.index([x for x in colnames if "ra" in str(x).lower()][0])]
         dicts[i]["dec"] = entries[i][colnames.index([x for x in colnames if "de" in str(x).lower()][0])]
@@ -208,7 +208,7 @@ def show(id, table):
         return render_template("show/show_racs.html", source=source_dict, match_tables=match_tables, table=table)
     else:
         # Determine basic info (name, ra, dec)
-        name = [x for x in source if type(x) == str][0]
+        name = [x for x in source if type(x) == str and 'J' in x][0]
         source_dict['name'] = name
         ra = source[colnames.index([x for x in colnames if "ra" in x.lower()][0])]
         source_dict['ra'] = ra
@@ -220,6 +220,10 @@ def show(id, table):
 
         if table == "allwise":
             return render_template("show/show_wise.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+        elif table == "rosat_2rxs":
+            return render_template("show/show_rosat.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+        elif table == "fermi_4fgl":
+            return render_template("show/show_fermi.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
         else:
             return render_template("show/show_basic.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
 
