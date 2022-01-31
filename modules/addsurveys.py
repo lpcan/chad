@@ -27,6 +27,10 @@ def addsurveys():
         print("ERROR: Could not connect to CHAD. Try running rebuild")
     cur = conn.cursor()
 
+    # Clear table with match information
+    cur.execute('DROP TABLE IF EXISTS match_info')
+    cur.execute('CREATE TABLE match_info(match_table TEXT, racs_table TEXT)')
+
     # Process one survey at a time
     for survey in surveys:
         name = survey["survey"]
@@ -38,7 +42,6 @@ def addsurveys():
 
         # Delete the old table if it exists
         cur.execute('DROP TABLE IF EXISTS %s;' % table_name)
-        conn.commit()
         
         # Go through all crossmatch result files for this survey
         csvs = glob.glob("output/*%s*" % table_name)
@@ -75,6 +78,10 @@ def addsurveys():
                 print(header)
                 # Create the table
                 cur.execute(header)
+
+                # Also for the first file, add which RACS catalogue this matches to match_info table
+                racs_match = "racs_" + survey["type"]
+                cur.execute("INSERT INTO match_info VALUES (%s, %s)", (table_name, racs_match))
             else: 
                 # Check the key types for the new table, change if necessary
                 update = f.check_keys(table, table_name, old_keytypes)
@@ -108,11 +115,10 @@ def addsurveys():
 
             old_keys = table.keys()    
             print(f"{j+1}/{len(table)}")
+        conn.commit()
 
     # Commit the changes back to the database
     print("Done!")
-    conn.commit()
-    
 
             
 

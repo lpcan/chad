@@ -18,6 +18,7 @@ def get_tables():
 
     cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
     tables = cur.fetchall()
+    tables = [table[0] for table in tables if table[0] != "match_info"]
 
     cur.close()
     conn.close()
@@ -113,30 +114,28 @@ def search_id(id, table):
 def get_matches(id, curtable):
     conn, cur = connect()
 
-    # Get a list of all other tables
-    cur.execute("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")
-    tables = cur.fetchall()
-
-    tables = [table for table in tables if curtable not in table[0]]
-
-    # Reorder the tables to have RACS at the start
-    for i, table in enumerate(tables):
-        if "racs" in table:
-            temp = tables[0]
-            tables[0] = tables[i]
-            tables[i] = temp
+    # Get a list of all other possible matching tables
+    if "racs" in curtable:
+        cur.execute("SELECT match_table FROM match_info WHERE racs_table = %s", (curtable,))
+        tables = cur.fetchall()
+        tables = [table[0] for table in tables]
+    else:
+        cur.execute("SELECT racs_table FROM match_info WHERE match_table = %s", (curtable,))
+        racs_table = cur.fetchone()[0]
+        cur.execute("SELECT match_table FROM match_info WHERE racs_table = %s", (racs_table,))
+        tables = cur.fetchall()
+        tables = [table[0] for table in tables if curtable not in table[0]]
     
     # Search through all other tables for matching object
     match_tables = []
     for table in tables:
-        cur.execute("SELECT * FROM " + table[0] + " WHERE id = %s", (id,))
+        cur.execute("SELECT * FROM " + table + " WHERE id = %s", (id,))
         m = cur.fetchall()
         if len(m) > 0:
-            match_tables.append(table[0])
+            match_tables.append(table)
 
     cur.close()
     conn.close()
-    
     return match_tables
 
 # For a given source, find all associated components

@@ -21,7 +21,7 @@
         
         {% for i in range(name | length) %}
             <tr>
-                <td><a href="{{url_for('show_summary', id=ids[i])}}">{{ name[i] }}</a></td>
+                <td><a href="{{url_for('show_summary', id=ids[i], table=search_params[-1][5:])}}">{{ name[i] }}</a></td>
                 <td>{{ ra[i] }}</td>
                 <td>{{ dec[i] }}</td>
             </tr>

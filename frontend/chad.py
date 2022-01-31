@@ -8,19 +8,18 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     tables = db.get_tables()
-    tables = [table[0] for table in tables if "racs" not in table[0]]
+    tables = [table for table in tables if "racs" not in table]
     return render_template("home.html", search_error = None, other_tables = tables)
 
 @app.route('/error-<error>')
 def home_error(error):
     tables = db.get_tables()
-    tables = [table[0] for table in tables if "racs" not in table[0]]
+    tables = [table for table in tables if "racs" not in table]
     return render_template("home.html", search_error = error, other_tables = tables)
 
 @app.route('/about')
 def about():
     tables = db.get_tables()
-    tables = [table[0] for table in tables]
     return render_template("about.html", tables=tables) 
 
 @app.route('/result-conesearch', methods=["POST", "GET"])
@@ -129,7 +128,7 @@ def result_closest():
         if request.form.get('flux') == "on":
             min_flux = float(min_flux)
     except:
-        return redirect(url_for("home_error", error="closest"))#render_template("home.html", search_error = "closest") # Invalid request
+        return redirect(url_for("home_error", error="closest"))
     
     # Get the results from the database
     result = db.search_closest(ra, dec, table, min_flux = min_flux, force_match = force_match)
@@ -149,30 +148,28 @@ def result_closest():
 
     return render_template("results.html", pos_search=True, search_params=(ra, dec, table), results=([name], [source_ra], [source_dec]), ids=[id], trunc = False)
 
-@app.route('/summary/<int:id>')
-def show_summary(id):
-    # Component or island catalogue?
-    table = "racs_component"
-    racs_entry = db.search_id(id, table)
-    if racs_entry == None:
-        table = "racs_island"
-        racs_entry = db.search_id(id, table)
+@app.route('/summary/<table>/<int:id>')
+def show_summary(id, table):
+    # Get entry from racs table
+    table = "racs_" + table
 
     # Find other tables with this id
     tables = [table]
     other_tables = db.get_matches(id, table)
-    
+
     if len(other_tables) > 0:
         tables = tables + other_tables
     else:
         # If this source is in no other tables, redirect straight to the RACS show page
         return redirect(url_for("show", id = id, table = tables[0]))
-    
+
     # Get all table entries for this source
     entries = []
     for t in tables:
         entries.append(db.search_id(id, t))
-    
+        print(t)
+        print(db.search_id(id, t))
+
     # Get name, ra, dec and other information
     dicts = [{} for i in range(len(tables))]
     for i in range(len(tables)):
@@ -198,7 +195,6 @@ def show_summary(id):
             wise_plot = (colour_x, colour_y)
     
     # Pass into display template
-    
     return render_template('show/show_summary.html', dicts = dicts, tables = tables, wise_plot=wise_plot)
         
 
@@ -229,17 +225,18 @@ def show(id, table):
         dec = source[colnames.index([x for x in colnames if "de" in x.lower()][0])]
         source_dict['dec'] = dec
         # Get the matching RACS source name
+        racs_table = [table for table in match_tables if "racs" in table][0]
         racs_match = db.search_id(source_dict['id'], [table for table in match_tables if "racs" in table][0])
         racs_match = [col for col in racs_match if type(col) == str][0]
 
         if table == "allwise":
-            return render_template("show/show_wise.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+            return render_template("show/show_wise.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         elif table == "rosat_2rxs":
-            return render_template("show/show_rosat.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+            return render_template("show/show_rosat.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         elif table == "fermi_4fgl":
-            return render_template("show/show_fermi.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+            return render_template("show/show_fermi.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         else:
-            return render_template("show/show_basic.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match)
+            return render_template("show/show_basic.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table=racs_table)
 
 
 @app.route('/<source_id>/components')
@@ -255,7 +252,7 @@ def find_components(source_id):
 
     if len(components) == 1:
         # Go directly to show component page
-        return redirect(url_for("show_summary", id = id[0]))
+        return redirect(url_for("show_summary", id = id[0], table="component"))
     return render_template("results.html", pos_search=False, search_params=("","","","racs_component"), results=(name, ra, dec), ids=id)
 
 @app.route('/<source_id>/source')
