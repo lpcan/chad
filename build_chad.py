@@ -32,7 +32,7 @@ def main():
     parser.add_argument("-cl", "--confidence",
             type = int, 
             default = 40,
-            help = "Specify maximum confidence level for crossmatch (default %(default)s")
+            help = "Specify minimum confidence level for crossmatch (default %(default)s")
             
     parser.add_argument("-a", "--addsurveys",
     		default = False,

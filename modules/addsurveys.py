@@ -71,10 +71,15 @@ def addsurveys():
                         if prim_key != None: print("Invalid column name, please try again.")
                         prim_key = input("Please enter a column name for primary key: ")
 
-                header = f.generate_header(table, table_name, prim_key=prim_key)
+                header, old_keytypes = f.generate_header(table, table_name, prim_key=prim_key)
                 print(header)
                 # Create the table
                 cur.execute(header)
+            else: 
+                # Check the key types for the new table, change if necessary
+                update = f.check_keys(table, table_name, old_keytypes)
+                if update != "":
+                    cur.execute(update)
             
             print("Inserting rows...")
             for j, source in enumerate(table):
@@ -96,9 +101,12 @@ def addsurveys():
                 for c in range(len(ssource)):
                     if ssource[c] == "--":
                         ssource[c] = None
+                    if ssource[c] == "":
+                        ssource[c] = None
 
                 cur.execute(query + values + ")", ssource)
-                
+
+            old_keys = table.keys()    
             print(f"{j+1}/{len(table)}")
 
     # Commit the changes back to the database

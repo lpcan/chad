@@ -51,7 +51,7 @@ def crossmatch(master, max_confidence, force):
 					done = True
 					break
 			if done == True:
-				break
+				continue
 					
 			start = time.time() # Time the crossmatch
 			print("Crossmatching %s with file %s" % (name, file))
@@ -61,7 +61,7 @@ def crossmatch(master, max_confidence, force):
 				print("Query failed: %s. Continuing..." % inst)
 				continue
 
-			print("Culling crossmatch results... Max confidence level: %s%%" % str(max_confidence))
+			print("Culling crossmatch results... Min confidence level: %s%%" % str(max_confidence))
 			
 			# Calculate the confidence of each match and remove matches < confidence level
 			confidence = calc_confidence(v_code, matches, file, max_sep = ang_sep)
@@ -116,8 +116,7 @@ def calc_confidence(target_name, matches, master, max_sep):
 			upper = 0.4
 
 		area = np.pi * upper**2 - np.pi * lower**2
-		all_matches = matches[matches["angDist"] >= lower]
-		all_matches = len(all_matches[all_matches["angDist"] <= upper])
+		all_matches = np.sum((matches["angDist"] >= lower) & (matches["angDist"] <= upper))
 
 		# Confidence = 1 - (expected number of matches with random uniform distribution / actual number of matches)
 		prob = density * area * len(table) / all_matches

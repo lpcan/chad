@@ -73,7 +73,11 @@ def results():
     colnames = db.colnames(table)
     # Find the columns we want
     if len(results) > 0:
-        name_idx = results[0].index([x for x in results[0] if type(x) == str and 'J' in x][0])
+        # Name usually has J in it
+        name_candidates = [x for x in results[0] if type(x) == str and 'J' in x]
+        if len(name_candidates) == 0:
+            name_candidates = [x for x in results[0] if type(x) == str]
+        name_idx = results[0].index(name_candidates[0])
         name = [x[name_idx] for x in results] # Take first column with type string as source name
 
         ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
@@ -129,10 +133,14 @@ def result_closest():
     
     # Get the results from the database
     result = db.search_closest(ra, dec, table, min_flux = min_flux, force_match = force_match)
-
+    print(result)
     colnames = db.colnames(table)
     # Find the columns we want
-    name = [x for x in result if type(x) == str and 'J' in x][0]
+    name_candidates = [x for x in result if type(x) == str and 'J' in x]
+    if len(name_candidates) == 0:
+        name_candidates = [x for x in result if type(x) == str]
+    name = name_candidates[0]
+
     ra_idx = colnames.index([x for x in colnames if "ra" in x][0])
     source_ra = result[ra_idx]
     dec_idx = colnames.index([x for x in colnames if "de" in x][0])
@@ -153,6 +161,7 @@ def show_summary(id):
     # Find other tables with this id
     tables = [table]
     other_tables = db.get_matches(id, table)
+    
     if len(other_tables) > 0:
         tables = tables + other_tables
     else:
@@ -167,7 +176,11 @@ def show_summary(id):
     # Get name, ra, dec and other information
     dicts = [{} for i in range(len(tables))]
     for i in range(len(tables)):
-        dicts[i]["name"] = [x for x in entries[i] if type(x) == str and 'J' in x][0]
+        name_candidates = [x for x in entries[i] if type(x) == str and 'J' in x]
+        if len(name_candidates) == 0:
+            name_candidates = [x for x in entries[i] if type(x) == str]
+
+        dicts[i]["name"] = name_candidates[0]
         colnames = db.colnames(tables[i])
         dicts[i]["ra"] = entries[i][colnames.index([x for x in colnames if "ra" in str(x).lower()][0])]
         dicts[i]["dec"] = entries[i][colnames.index([x for x in colnames if "de" in str(x).lower()][0])]
@@ -185,6 +198,7 @@ def show_summary(id):
             wise_plot = (colour_x, colour_y)
     
     # Pass into display template
+    
     return render_template('show/show_summary.html', dicts = dicts, tables = tables, wise_plot=wise_plot)
         
 

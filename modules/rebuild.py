@@ -44,15 +44,14 @@ def add_master(cur, name = "racs"):
 		# Loop over the input tables
 		for i, cat in enumerate(cats):
 			print("Reading in Table %s..." % cat)
-			d = ascii.read(cat)
+			d = ascii.read(cat, format="csv")
 			
-			# Generate the header
+			# Generate header and create table for just the first component/island catalogue
 			if i == 0:
-				header = f.generate_header(d, table)
+				header, _ = f.generate_header(d, table)
 				#print(header)
-				
-			# Create the table
-			cur.execute(header)
+				# Create the table
+				cur.execute(header)
 
 			# Insert rows into the table
 			print("Inserting rows...")
