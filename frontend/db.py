@@ -163,3 +163,15 @@ def search_exact(table, colname, constraint):
     conn.close()
 
     return r
+
+# Get the matching RACS table
+def get_racs_table(curtable):
+    conn, cur = connect()
+
+    cur.execute("SELECT racs_table FROM match_info WHERE match_table = %s", (curtable,))
+    racs_table = cur.fetchone()[0]
+
+    cur.close()
+    conn.close()
+
+    return racs_table

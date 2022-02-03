@@ -225,8 +225,8 @@ def show(id, table):
         dec = source[colnames.index([x for x in colnames if "de" in x.lower()][0])]
         source_dict['dec'] = dec
         # Get the matching RACS source name
-        racs_table = [table for table in match_tables if "racs" in table][0]
-        racs_match = db.search_id(source_dict['id'], [table for table in match_tables if "racs" in table][0])
+        racs_table = db.get_racs_table(table)
+        racs_match = db.search_id(source_dict['id'], racs_table)
         racs_match = [col for col in racs_match if type(col) == str][0]
 
         if table == "allwise":
