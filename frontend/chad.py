@@ -132,7 +132,7 @@ def result_closest():
     
     # Get the results from the database
     result = db.search_closest(ra, dec, table, min_flux = min_flux, force_match = force_match)
-    print(result)
+    
     colnames = db.colnames(table)
     # Find the columns we want
     name_candidates = [x for x in result if type(x) == str and 'J' in x]
@@ -235,6 +235,8 @@ def show(id, table):
             return render_template("show/show_rosat.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         elif table == "fermi_4fgl":
             return render_template("show/show_fermi.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
+        elif table == "xmm4_dr9":
+            return render_template("show/show_xmm.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         else:
             return render_template("show/show_basic.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table=racs_table)
 

@@ -124,7 +124,7 @@ def get_matches(id, curtable):
         racs_table = cur.fetchone()[0]
         cur.execute("SELECT match_table FROM match_info WHERE racs_table = %s", (racs_table,))
         tables = cur.fetchall()
-        tables = [table[0] for table in tables if curtable not in table[0]]
+        tables = [racs_table] + [table[0] for table in tables if curtable not in table[0]]
     
     # Search through all other tables for matching object
     match_tables = []

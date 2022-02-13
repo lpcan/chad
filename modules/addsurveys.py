@@ -35,9 +35,16 @@ def addsurveys():
     for survey in surveys:
         name = survey["survey"]
         table_name = name.lower().replace(" ", "_")
+        if table_name[0].isdigit() == True:
+            print("Table name cannot start with a digit!")
+            continue
 
-        if survey["status"] != "import":
-            print("Table %s not marked as import, continuing..." % name)
+        if survey["status"] == "done":
+            print("Table %s is marked as done, continuing..." % name)
+            continue
+        if survey["status"] == "blocked":
+            print("Table %s is marked as blocked, dropping table and continuing..." % name)
+            cur.execute("DROP TABLE IF EXISTS %s;" % table_name)
             continue
 
         # Delete the old table if it exists
@@ -119,6 +126,3 @@ def addsurveys():
 
     # Commit the changes back to the database
     print("Done!")
-
-            
-

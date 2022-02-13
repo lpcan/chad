@@ -36,6 +36,7 @@ def crossmatch(master, max_confidence, force):
 			name = survey["survey"]
 			v_code = survey["vizier_code"]
 			ang_sep = survey["angular_sep"]
+			global_density = survey["global_density"]
 
 			# Check if table is available
 			available = XMatch.is_table_available("vizier:%s" % v_code)
@@ -62,9 +63,13 @@ def crossmatch(master, max_confidence, force):
 				continue
 
 			print("Culling crossmatch results... Min confidence level: %s%%" % str(max_confidence))
-			
+
 			# Calculate the confidence of each match and remove matches < confidence level
-			confidence = calc_confidence(v_code, matches, file, max_sep = ang_sep)
+			if global_density == "-":
+				confidence = calc_confidence(v_code, matches, file, max_sep = ang_sep)
+			else:
+				global_density = float(global_density)
+				confidence = calc_confidence(v_code, matches, file, max_sep = ang_sep, global_density = global_density)
 			matches['confidence'] = confidence
 			matches = matches[matches['confidence'] > (max_confidence/100)]
 
@@ -82,24 +87,37 @@ def crossmatch(master, max_confidence, force):
 			
 	print("Done crossmatching!")
 
-def calc_confidence(target_name, matches, master, max_sep):
+"""
+Calculate the confidence of a match
+Input:
+	- target_name: vizier code of incoming catalogue
+	- matches: crossmatch results
+	- master: master table file name
+	- max_sep: maximum match separation
+	- global_density: if not an all-sky survey, provide global density of catalogue
+Output:
+	- confidence: array of len(matches) that has confidence for each match"""
+def calc_confidence(target_name, matches, master, max_sep, global_density = None):
 
 	table = ascii.read(master, format = "csv")
 
-	# Estimate the density of the target survey by getting number of elements in a 1 degree radius around a random point in the patch -- TODO: how to get the "centre" of a patch that is weird and elongated e.g. racs galactic region
-	rand_ra = matches['ra'][int(len(matches) / 2)]
-	rand_dec = matches['dec'][int(len(matches) / 2)]
+	if global_density == None:
+		# Estimate the density of the target survey by getting number of elements in a 1 degree radius around a random point in the patch -- TODO: how to get the "centre" of a patch that is weird and elongated e.g. racs galactic region
+		rand_ra = matches['ra'][int(len(matches) / 2)]
+		rand_dec = matches['dec'][int(len(matches) / 2)]
 
-	# Count the number of sources in a 1 degree radius circle for both catalogues
-	data = TapPlus(url="http://tapvizier.u-strasbg.fr/TAPVizieR/tap")
-	job = data.launch_job_async(f"SELECT COUNT(*) FROM \"{target_name}\" WHERE 1=CONTAINS(POINT('ICRS', RAJ2000, DEJ2000), CIRCLE('ICRS', {rand_ra}, {rand_dec}, 1))")
-	r = job.get_results()
-
-	density = r[0][0] / np.pi
-	density = density / (60*60*60*60) # Convert density to arcseconds^2 instead of deg^2
+		# Count the number of sources in a 1 degree radius circle for both catalogues
+		data = TapPlus(url="http://tapvizier.u-strasbg.fr/TAPVizieR/tap")
+		job = data.launch_job_async(f"SELECT COUNT(*) FROM \"{target_name}\" WHERE 1=CONTAINS(POINT('ICRS', RAJ2000, DEJ2000), CIRCLE('ICRS', {rand_ra}, {rand_dec}, 1))")
+		r = job.get_results()
+		density = r[0][0] / np.pi
+		density = density / (60*60*60*60) # Convert density to arcseconds^2 instead of deg^2
+	else:
+		density = global_density / (60*60*60*60)
 
 	# Calculate the confidence for each point in the table
 	confidence = []
+	i = -1
 	for i, source in enumerate(matches):
 		print(f"{i}/{len(matches)}", end='\r')
 
