@@ -41,6 +41,9 @@ def addsurveys():
 
         if survey["status"] == "done":
             print("Table %s is marked as done, continuing..." % name)
+            # Add row back into match_info table
+            racs_match = "racs_" + survey["type"]
+            cur.execute("INSERT INTO match_info VALUES (%s, %s)", (table_name, racs_match))
             continue
         if survey["status"] == "blocked":
             print("Table %s is marked as blocked, dropping table and continuing..." % name)
@@ -125,4 +128,5 @@ def addsurveys():
         conn.commit()
 
     # Commit the changes back to the database
+    conn.commit()
     print("Done!")

@@ -53,8 +53,9 @@ def crossmatch(master, max_confidence, force):
 					break
 			if done == True:
 				continue
-					
-			start = time.time() # Time the crossmatch
+			
+			# Perform the crossmatch
+			start = time.time()
 			print("Crossmatching %s with file %s" % (name, file))
 			try:
 				matches = XMatch.query(cat1 = open(file), cat2 = "vizier:%s" % v_code, max_distance = ang_sep * u.arcsec, colRA1 = "ra", colDec1 = "dec")

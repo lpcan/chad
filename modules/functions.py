@@ -5,7 +5,11 @@
 import sys
 import requests
 
-# Download information from Google spreadsheet
+"""
+Downloads information from Google spreadsheet and writes into local file.
+Inputs:
+	- sheet_id: Google sheet id
+"""
 def download_csv(sheet_id):
 
 	url = "https://docs.google.com/spreadsheets/d/%s/export?exportFormat=csv" % sheet_id
@@ -14,7 +18,16 @@ def download_csv(sheet_id):
 	
 	return
 	
-# Generate SQL table header from csv file
+"""
+Generate SQL table header from csv file
+Inputs:
+	- table: an astropy Table holding catalogue information 
+	- table_name: name of the table to be created
+	- prim_key: primary key of the table 
+Outputs:
+	- header: string containing the generated SQL CREATE TABLE command 
+	- keytypes: list of types for each column of the table
+"""
 def generate_header(table, table_name, prim_key = "id"):
 
 	# Check that primary key exists
@@ -39,6 +52,7 @@ def generate_header(table, table_name, prim_key = "id"):
 		elif "<U" or "str" in keytype:
 			keytypes_db.append("TEXT")
 		else:
+			# Stop if we can't find the correct type
 			print("Type uncertain: %s... exiting!" % keytype)
 			sys.exit()
 
@@ -51,7 +65,6 @@ def generate_header(table, table_name, prim_key = "id"):
 			# Duplicate column
 			dbkeys[k] = key+"_x"
 
-			
 	# Generate create table command
 	header = "CREATE TABLE %s(\n" % table_name
 	
@@ -64,9 +77,19 @@ def generate_header(table, table_name, prim_key = "id"):
 	
 	return header, keytypes
 
-# Check incoming rows to existing table for mismatched types. Change if old type = int and new type = float
+"""
+Check incoming rows to existing table for mismatched types. Change if old type == int and 
+new type == float.
+Inputs:
+	- table: astropy Table containing catalogue information to be added
+	- table_name: name of (existing) table in database
+	- old_keytypes: list of keytypes from existing table 
+Outputs:
+	- cmd: empty string if all OK, otherwise a generated SQL ALTER TABLE command to change key type
+	       of a column
+"""
 def check_keys(table, table_name, old_keytypes):
-	ret = ""
+	cmd = ""
 
 	new_keys = table.keys()
 	for i in range(len(old_keytypes)):
@@ -83,6 +106,6 @@ def check_keys(table, table_name, old_keytypes):
 					new_keys[i] = new_keys[i]+"_x"
 
 				# Update column type
-				ret += "ALTER TABLE %s ALTER COLUMN %s TYPE FLOAT; " % (table_name, new_keys[i])
+				cmd += "ALTER TABLE %s ALTER COLUMN %s TYPE FLOAT; " % (table_name, new_keys[i])
 
-	return ret
+	return cmd

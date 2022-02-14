@@ -54,6 +54,21 @@
         </tr>
     </table>
 
+    <!-- Image viewer -->
+    <link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" /> 
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.1.min.js" charset="utf-8"></script>
+    <div id="aladin-lite-div" style="width:400px;height:400px;"></div>
+    <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        var target = "{{ source['ra'] }}" + " " + "{{ source['dec'] }}"
+        var aladin = A.aladin('#aladin-lite-div', {fov:0.2, target: target, showGotoControl: false});
+        
+        aladin.createImageSurvey("P/XMM/PN/color", "XMM PN colored", "http://saada.unistra.fr/PNColor", "equatorial", 7, {imgFormat: 'png'})
+        
+        // Set up the viewer, displaying RACS by default
+        aladin.setImageSurvey("P/XMM/PN/color")
+    </script>
+
     <br>
     <a href="{{url_for('show_summary', id=source['id'], table=racs_table[5:])}}">Summary Page</a><br><br>
     Other tables matching this source:<br>

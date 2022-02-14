@@ -13,7 +13,7 @@ from modules import functions as f
 def main():
     
     parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
-    
+
     parser.add_argument("-r", "--rebuild",
             default = False,
             action = "store_true",

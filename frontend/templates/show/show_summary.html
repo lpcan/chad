@@ -44,7 +44,7 @@
         <br>
     {% endfor %}
 
-    <!-- display Aladin Lite in webpage -->
+    <!-- display Aladin Lite in webpage. Will need to be modified if adding new surveys -->
     <link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" /> 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.1.min.js" charset="utf-8"></script>
 
@@ -62,6 +62,9 @@
         {% if "fermi_4fgl" in tables %}
         <option value="P/Fermi/color">Fermi</option>
         {% endif %}
+        {% if "xmm4_dr9" in tables %}
+        <option value="P/XMM/PN/color">XMM</option>
+        {% endif %}
         <!-- Add more survey options here -->
     </select>
 
@@ -75,6 +78,7 @@
         // Available surveys are at aladin.unistra.fr/hips/list
         aladin.createImageSurvey("P/RACS", "RACS", "http://casda.csiro.au/hips/RACS/low/I/", "equatorial", 10, {imgFormat: 'png'})
         aladin.createImageSurvey("P/ROSAT", "ROSAT", "http://cade.irap.omp.eu/documents/Ancillary/4Aladin/RASS", "equatorial", 10, {imgFormat: 'jpg'})
+        aladin.createImageSurvey("P/XMM/PN/color", "XMM PN colored", "http://saada.unistra.fr/PNColor", "equatorial", 7, {imgFormat: 'png'})
 
         // Set up the viewer, displaying RACS by default
         aladin.setImageSurvey("P/RACS")
