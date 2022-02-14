@@ -116,6 +116,19 @@ def calc_confidence(target_name, matches, master, max_sep, global_density = None
 	else:
 		density = global_density / (60*60*60*60)
 
+	# Need number of RACS sources within area of the incoming survey
+	if global_density == None:
+		num_racs = len(table) # all-sky survey
+	else:
+		# Calculate percentage of sky covered by incoming survey with 2D histogram
+		x_bins = int((max(table["ra"]) - min(table["ra"])) // (20/60)) # 20' by 20' bins
+		y_bins = int((max(table["dec"]) - min(table["dec"])) // (20/60))
+
+		counts, _, _ = np.histogram2d(matches["ra"], matches["dec"], bins = (x_bins, y_bins))
+		sky_cov = (counts > 0).sum() / len(counts.flatten()) # Number of occupied / unoccupied bins
+
+		num_racs = int(len(table) * sky_cov)
+
 	# Calculate the confidence for each point in the table
 	confidence = []
 	i = -1
@@ -138,7 +151,7 @@ def calc_confidence(target_name, matches, master, max_sep, global_density = None
 		all_matches = np.sum((matches["angDist"] >= lower) & (matches["angDist"] <= upper))
 
 		# Confidence = 1 - (expected number of matches with random uniform distribution / actual number of matches)
-		prob = density * area * len(table) / all_matches
+		prob = density * area * num_racs / all_matches
 		prob = 1 - prob
 		confidence.append(round(prob, 4))
 	print(f"{i+1}/{len(matches)}\n", end = '')

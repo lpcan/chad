@@ -99,6 +99,7 @@ def addsurveys():
                     cur.execute(update)
             
             print("Inserting rows...")
+            j = -1
             for j, source in enumerate(table):
                 print(f"{j}/{len(table)}", end = '\r')
 

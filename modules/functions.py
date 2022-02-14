@@ -78,8 +78,7 @@ def generate_header(table, table_name, prim_key = "id"):
 	return header, keytypes
 
 """
-Check incoming rows to existing table for mismatched types. Change if old type == int and 
-new type == float.
+Check incoming rows to existing table for mismatched types. Change if old_type = int
 Inputs:
 	- table: astropy Table containing catalogue information to be added
 	- table_name: name of (existing) table in database
@@ -107,5 +106,18 @@ def check_keys(table, table_name, old_keytypes):
 
 				# Update column type
 				cmd += "ALTER TABLE %s ALTER COLUMN %s TYPE FLOAT; " % (table_name, new_keys[i])
+			# Check if old type = int and new type = string
+			elif ("int" in old_keytypes[i]) and ("<U" in str(table[new_keys[i]].dtype)) or ("str" in str(table[new_keys[i]].dtype)):
+				# Check column name
+				if new_keys[i][0].isdigit() == True:
+					new_keys[i] = 'x'+new_keys[i]
+				if '.' in new_keys[i]:
+					new_keys[i] = '\"'+new_keys[i]+'\"'
+				if new_keys[i] != "id" and new_keys[i].lower() == "id": # check that foreign key "id" (from master) is not duplicated here
+					# Duplicate column
+					new_keys[i] = new_keys[i]+"_x"
+
+				# Update column type
+				cmd += "ALTER TABLE %s ALTER COLUMN %s TYPE TEXT; " % (table_name, new_keys[i])
 
 	return cmd
