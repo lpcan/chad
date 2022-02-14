@@ -30,7 +30,7 @@ After this is run, there will be one table for each catalogue where crossmatchin
 ## CHAD Frontend
 The frontend of CHAD runs using Flask. The postgres password will need to be changed in the `connect()` function in `frontend/db.py`. 
 
-To run the flask app on a Mac, first run `export FLASK_APP=chad FLASK_ENV="development"` (or `set FLASK_APP=chad FLASK_END="development"` for Windows) to set the main app file and specify a development environment (to avoid warnings). Then the server can be started with `flask run`, and CHAD can be accessed at localhost:5000.
+To run the flask app on a Mac, first run `export FLASK_APP=chad FLASK_ENV="development"` (or `set FLASK_APP=chad FLASK_ENV="development"` for Windows) to set the main app file and specify a development environment (to avoid warnings). Then the server can be started with `flask run`, and CHAD can be accessed at localhost:5000.
 
 #### chad.py
 This is the main application file for CHAD, containing all the app routes and functions to render pages on the website. They are split into search functions and display functions.
