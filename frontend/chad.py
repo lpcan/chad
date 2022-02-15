@@ -263,7 +263,7 @@ def show(id, table):
         source_dict['name'] = name
         ra = source[colnames.index([x for x in colnames if "ra" in x.lower()][0])]
         source_dict['ra'] = ra
-        dec = source[colnames.index([x for x in colnames if "de" in x.lower()][0])]
+        dec = source[colnames.index([x for x in colnames if "de" in x.lower() and "ra" not in x.lower()][0])]
         source_dict['dec'] = dec
         # Get the matching RACS source name
         racs_table = db.get_racs_table(table)
@@ -279,5 +279,7 @@ def show(id, table):
             return render_template("show/show_fermi.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
         elif table == "xmm4_dr9":
             return render_template("show/show_xmm.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table = racs_table)
+        elif table == "sdss":
+            return render_template("show/show_sdss.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table=racs_table)
         else:
             return render_template("show/show_basic.html", source=source_dict, match_tables=match_tables, table=table, racs_match=racs_match, racs_table=racs_table)

@@ -69,6 +69,7 @@ def addsurveys():
                 for key in table.keys():
                     if key != "id" and "id" in key.lower() and key != "confidence": # Select an id column, but not the RACS id column
                         prim_key = key
+                        break
                 # Could not find a primary key, try to find a different key
                 if prim_key == None:
                     # Try to find an alternate prim_key
@@ -77,6 +78,7 @@ def addsurveys():
                         for name in name_split:
                             if name in key.lower():
                                 prim_key = key # Set primary key as source name (usually in a column called table_name)
+                                break
                 # If prim_key is still none, ask for user to set primary key
                 if prim_key == None:
                     print(table.keys())
