@@ -84,4 +84,25 @@
         Invalid search, please try again!
         {% endif %}
     </body>
+    <br>
+    <h3>Search by name</h3>
+    Search for a known object by name. Given name is resolved using Sesame. 
+    <form action="{{url_for('result_name')}}" method=POST name="name">
+        <label for="name">Source Name: </label>
+        <input type="text" name="name" size="10">
+        <label for="cattype">Catalogue type: </label>
+        <select name="cattype">
+            <option value="component">component</option>
+            <option value="island">island</option>
+        </select>
+        <br>
+        <input type="submit" value="Search">
+    </form>
+
+    <body>
+        {% if search_error == "name" %}
+        Could not resolve name!
+        {% endif %}
+    </body>
+    <br>
 {% endblock %}

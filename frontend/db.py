@@ -72,10 +72,10 @@ def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
     dec = np.radians(dec)
 
     flux_constraint = ""
-    values = (dec, dec, ra, radius, dec, dec, ra)
+    values = (dec, dec, ra, dec, dec, ra, radius, dec, dec, ra)
     if min_flux != None:
         flux_constraint = " AND peak_flux >= %s"
-        values = (dec, dec, ra, radius, min_flux, dec, dec, ra)
+        values = (dec, dec, ra, dec, dec, ra, radius, min_flux, dec, dec, ra)
 
     # Perform cone search with conditions (if any)
     if force_match != None: 
@@ -88,13 +88,15 @@ def cone_search(ra, dec, radius, cat, min_flux = None, force_match = None):
             return []
         
         # Only select rows that have a match in the other table
-        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id WHERE \
+        cur.execute(sql.SQL("SELECT {}.*, DEGREES(ACOS(SIN(RADIANS(dec))*SIN(%s)+\
+                    COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s))) FROM {} INNER JOIN {} ON {}.id = {}.id WHERE \
                     ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
                     COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY ACOS(SIN(RADIANS(dec))*SIN(%s)+\
                     COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s))").format(sql.Identifier(cat), sql.Identifier(cat), \
                     sql.Identifier(force_match), sql.Identifier(cat), sql.Identifier(force_match)), values)
     else:
-        cur.execute(sql.SQL("SELECT * FROM {} WHERE ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
+        cur.execute(sql.SQL("SELECT *, DEGREES(ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
+                    COS(RADIANS(ra)-%s))) FROM {} WHERE ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
                     COS(RADIANS(ra)-%s)) < %s" + flux_constraint + " ORDER BY ACOS(SIN(RADIANS(dec))*SIN(%s)+\
                     COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s))").format(sql.Identifier(cat)), values)
 
@@ -118,11 +120,14 @@ Outputs:
 def search_closest(ra, dec, table, min_flux = None, force_match = None):
     conn, cur = connect()
 
+    ra = np.radians(ra)
+    dec = np.radians(dec)
+
     flux_constraint = ""
-    values = (ra, dec, dec)
+    values = (dec, dec, ra, dec, dec, ra)
     if min_flux != None:
         flux_constraint = " WHERE peak_flux >= %s"
-        values = (min_flux, ra, dec, dec)
+        values = (dec, dec, ra, min_flux, dec, dec, ra)
 
     if force_match != None:
         # Check whether force_match table is valid for this racs catalogue type
@@ -134,13 +139,15 @@ def search_closest(ra, dec, table, min_flux = None, force_match = None):
             return []
 
         # Using the small angle approximation since we assume there will always be a source < 1 degree away
-        cur.execute(sql.SQL("SELECT {}.* FROM {} INNER JOIN {} ON {}.id = {}.id" + flux_constraint +" ORDER BY \
-                    SQRT(POWER((%s-ra)*COS(%s), 2)+POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table),\
-                    sql.Identifier(table), sql.Identifier(force_match), sql.Identifier(table), sql.Identifier(force_match)), \
-                    values)
+        cur.execute(sql.SQL("SELECT {}.*, DEGREES(ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
+                    COS(RADIANS(ra)-%s))) FROM {} INNER JOIN {} ON {}.id = {}.id" + flux_constraint +" ORDER BY \
+                    ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s)) ASC \
+                    LIMIT 1").format(sql.Identifier(table),sql.Identifier(table), sql.Identifier(force_match), \
+                    sql.Identifier(table), sql.Identifier(force_match)), values)
     else:
-        cur.execute(sql.SQL("SELECT * FROM {}" + flux_constraint + " ORDER BY SQRT(POWER((%s-ra)*COS(%s), 2)+\
-                    POWER(%s-dec, 2)) ASC LIMIT 1").format(sql.Identifier(table)), values)
+        cur.execute(sql.SQL("SELECT *, DEGREES(ACOS(SIN(RADIANS(dec))*SIN(%s)+COS(RADIANS(dec))*COS(%s)*\
+                    COS(RADIANS(ra)-%s))) FROM {}" + flux_constraint + " ORDER BY ACOS(SIN(RADIANS(dec))*SIN(%s)+\
+                    COS(RADIANS(dec))*COS(%s)*COS(RADIANS(ra)-%s)) ASC LIMIT 1").format(sql.Identifier(table)), values)
 
     result = cur.fetchone()
 
